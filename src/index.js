@@ -5,7 +5,6 @@ import chalk from 'chalk'
 import Spells from '../data/spells.json'
 
 const debug = debugModule('spellFinder:main')
-console.log(debug)
 const mappedSpells = Object.keys(Spells).map(name => {
   let spell = Spells[name]
   spell.name = name

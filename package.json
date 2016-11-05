@@ -1,6 +1,6 @@
 {
   "name": "spell-finder",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Quickly Find a Spell",
   "main": "lib/index.js",
   "scripts": {
