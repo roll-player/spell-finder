@@ -32,10 +32,14 @@ const asLevelText = level => {
   }
 }
 
-const renderLine = (label, value) => console.log(chalk.white.underline(`${label}\r\n\t${chalk.white.bold(value)}`))
+const args = process.argv.splice(2)
+const isDarkMode = (args.indexOf('--dark') !== -1 || process.env.dark) 
+const defaultColor = isDarkMode ? chalk.black : chalk.white 
+
+const renderLine = (label, value) => console.log(`${defaultColor.underline(label)}\r\n\t${defaultColor.bold(value)}`)
 
 const savingThrowReplacer = match => chalk.green.bold(match)
-const diceReplacer = match => chalk.yellow.bold(match)
+const diceReplacer = match => isDarkMode ? chalk.blue.bold(match) : chalk.yellow.bold(match)
 const componentCostReplacer = match => chalk.green.bold(match)
 
 const renderSpell = spell => {
@@ -43,10 +47,10 @@ const renderSpell = spell => {
   const name = spell.name
   const castingTime = spell.casting_time
   let components = spell.components
-  components = chalk.white(components.replace(/\d+ [s|g|c]+p/ig, componentCostReplacer))
+  components = defaultColor(components.replace(/\d+ [s|g|c]+p/ig, componentCostReplacer))
   let description = spell.description
-  description = chalk.white(description.replace(/\w+ saving throw/g, savingThrowReplacer))
-  description = chalk.white(description.replace(/\d+d\d+(\+\d)*/g, diceReplacer))
+  description = defaultColor(description.replace(/\w+ saving throw/g, savingThrowReplacer))
+  description = defaultColor(description.replace(/\d+d\d+(\+\d)*/g, diceReplacer))
   const duration = spell.duration
   const level = asLevelText(spell.level)
   const range = spell.range
