@@ -43,7 +43,7 @@ const asLevelText = level => {
   }
 }
 
-const renderLine = (label, value) => console.log(chalk.white(`${label} ${chalk.bold(value)}`))
+const renderLine = (label, value) => console.log(chalk.white.underline(`${label}\r\n\t${chalk.white.bold(value)}`))
 
 const savingThrowReplacer = match => {
   return chalk.green.bold(match)
@@ -65,21 +65,16 @@ const renderSpell = spell => {
   const level = asLevelText(spell.level)
   const range = spell.range
   const school = spell.school
-  const requiresTarget = spell.description.indexOf('target') !== -1
 
-  renderLine('', name) 
-  renderLine('Is a', level) 
-  renderLine('it\'s magical school is', school) 
-  renderLine('With a casting time of', castingTime) 
-  renderLine('And a range of', range) 
-  renderLine('It requires the following components ', components) 
-  renderLine('It lasts for', duration) 
+  renderLine('Name', name) 
+  renderLine('Level', level) 
+  renderLine('School', school) 
+  renderLine('Casting Time', castingTime) 
+  renderLine('Range', range) 
+  renderLine('Components', components) 
+  renderLine('Duration', duration) 
 
-  if (requiresTarget){
-    renderLine('It require a', 'target')
-  }
-
-  renderLine('', description) 
+  renderLine('Description', description) 
 }
 
 const asChoice = spell => spell.name
