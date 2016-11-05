@@ -2,25 +2,15 @@ import Inquirer from 'inquirer'
 import Fuse from 'fuse.js'
 import debugModule from 'debug'
 import chalk from 'chalk'
-
-const debug = debugModule('spell-finder:main')
-
 import Spells from '../data/spells.json'
 
+const debug = debugModule('spellFinder:main')
+console.log(debug)
 const mappedSpells = Object.keys(Spells).map(name => {
   let spell = Spells[name]
-
   spell.name = name
-
   return spell
 })
-
-const fuseOptions = {
-  keys: ['name'],
-  include: ['score']
-}
-
-const fuse = new Fuse(mappedSpells, fuseOptions)
 
 const whatSpellQuestion = {
   type: 'string',
@@ -45,19 +35,16 @@ const asLevelText = level => {
 
 const renderLine = (label, value) => console.log(chalk.white.underline(`${label}\r\n\t${chalk.white.bold(value)}`))
 
-const savingThrowReplacer = match => {
-  return chalk.green.bold(match)
-}
-
-const diceReplacer = match => {
-  return chalk.yellow.bold(match)
-}
+const savingThrowReplacer = match => chalk.green.bold(match)
+const diceReplacer = match => chalk.yellow.bold(match)
+const componentCostReplacer = match => chalk.green.bold(match)
 
 const renderSpell = spell => {
   // first thing to do is to make the spell friendly
   const name = spell.name
   const castingTime = spell.casting_time
-  const components = spell.components
+  let components = spell.components
+  components = chalk.white(components.replace(/\d+ [s|g|c]+p/ig, componentCostReplacer))
   let description = spell.description
   description = chalk.white(description.replace(/\w+ saving throw/g, savingThrowReplacer))
   description = chalk.white(description.replace(/\d+d\d+(\+\d)*/g, diceReplacer))
@@ -103,8 +90,7 @@ const askPickSpell = spells => {
         if (foundSpell) {
           resolve(foundSpell)
         } else {
-          debug('somehow unable to find spell')
-          resolve()
+          reject('somehow unable to find spell')
         }
       })
       .catch(err => { 
@@ -113,49 +99,51 @@ const askPickSpell = spells => {
       })
   })
 }
-const handleSpellMatches = matches => {
-  return new Promise((resolve, reject) => {
-    switch (matches.length) {
-      case 0:
-        debug(`Could not find a spell with the name ${query}`)
-        resolve()
-        break
-      default:
-        const spells = matches.map(match => { 
-          let spell = match.item
-          spell.score = match.score
-          return spell
-        })
 
-        if (spells[0].score === 0.0 || spells.length === 1) {
-          renderSpell(spells[0])
-          debug('resolved')
-          resolve()
-        } else {
-          askPickSpell(spells)
-            .then(spell => {
-              renderSpell(spell)
-              debug('resolved')
-              resolve()
-            })
-            .catch(err => { 
-              debug('Rejecting askPickSpell' , err)
-              reject(err) 
-            })
-        }
-        break
-    }
-  })
+const handleSpellMatches = (query, matches) => {
+  switch (matches.length) {
+    case 0:
+      debug('found no spells')
+      return Promise.reject(`Could not find a spell with the name ${query}`)
+      break
+    default:
+      const spells = matches.map(match => { 
+        let spell = match.item
+        spell.score = match.score
+        return spell
+      })
+
+      if (spells[0].score === 0.0 || spells.length === 1) {
+        debug('found one spell')
+        return Promise.resolve(spells[0])
+      } else {
+        debug('asking')
+        return askPickSpell(spells)
+      }
+      break
+  }
 }
+
+const fuseOptions = {
+  keys: ['name'],
+  include: ['score'],
+  threshold: 0.3
+}
+
+const fuse = new Fuse(mappedSpells, fuseOptions)
 
 const askSpell = () => Inquirer.prompt(whatSpellQuestion)
   .then(answer => {
     const query = answer.spellQuery
     const matches = fuse.search(query)
 
-    return handleSpellMatches(matches)
+    return handleSpellMatches(query, matches)
+      .then(spell => renderSpell(spell))
+      .catch(err =>  {
+        console.log(chalk.red(`${chalk.green(':(')} ${err}`))
+        debug('Handle Spell Matches Error: ', err)
+      })
       .then(_ => askSpell())
-      .catch(err => debug('Handle Spell Matches Error: ', err))
   })
   .catch(err => debug('Ask Spell Error: ', err))
 
