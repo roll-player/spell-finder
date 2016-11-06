@@ -1,6 +1,6 @@
 {
   "name": "spell-finder",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Quickly Find a Spell",
   "main": "lib/index.js",
   "scripts": {
@@ -8,8 +8,8 @@
     "prepublish": "npm run build",
     "dev": "npm run build && node ./lib/index.js"
   },
-  "bin":{
-    "spell-finder": "bin/cli" 
+  "bin": {
+    "spell-finder": "bin/cli"
   },
   "repository": {
     "url": "roll-player/spell-finder",
